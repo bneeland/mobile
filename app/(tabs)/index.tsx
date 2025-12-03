@@ -56,6 +56,7 @@ export default function HomeScreen() {
         onChangeText={(value) => {
           setOtp(value);
         }}
+        keyboardType="numeric"
       />
       <Button
         title="Submit"
