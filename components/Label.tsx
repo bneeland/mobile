@@ -5,7 +5,7 @@ export default function Label(props: TextProps) {
   return (
     <Text
       {...props}
-      className={twMerge("block font-semibold", props.className)}
+      className={twMerge("block font-sans-semibold text-xl", props.className)}
     >
       {props.children}
     </Text>

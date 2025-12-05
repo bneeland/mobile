@@ -3,7 +3,7 @@ import {
   KeyboardAwareScrollView,
   KeyboardProvider,
 } from "react-native-keyboard-controller";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useState } from "react";
 import { auth } from "lib/auth";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -12,8 +12,20 @@ import Button from "components/Button";
 import Fieldset from "components/Fieldset";
 import Label from "components/Label";
 import { ArrowLeft } from "lucide-react-native";
+import { useFonts } from "expo-font";
+import Text from "components/Text";
 
 export default function App() {
+  useFonts({
+    "Manrope-ExtraLight": require("./assets/fonts/Manrope-ExtraLight.ttf"),
+    "Manrope-Light": require("./assets/fonts/Manrope-Light.ttf"),
+    "Manrope-Regular": require("./assets/fonts/Manrope-Regular.ttf"),
+    "Manrope-Medium": require("./assets/fonts/Manrope-Medium.ttf"),
+    "Manrope-SemiBold": require("./assets/fonts/Manrope-SemiBold.ttf"),
+    "Manrope-Bold": require("./assets/fonts/Manrope-Bold.ttf"),
+    "Manrope-ExtraBold": require("./assets/fonts/Manrope-ExtraBold.ttf"),
+  });
+
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -29,19 +41,15 @@ export default function App() {
         >
           <SafeAreaView className="">
             <View className="">
-              <Text className="my-5 text-center text-xl text-stone-400">
-                Emberline
-              </Text>
+              <Text className="my-5 text-center text-stone-400">Emberline</Text>
               <View className="mx-5 gap-7 rounded-3xl bg-white p-10 shadow">
-                <Text className="text-4xl font-semibold">Sign in</Text>
+                <Text className="text-4xl leading-normal">Sign in</Text>
                 {step === "email" && (
                   <>
-                    <Text className="text-xl">
-                      Enter your email to sign in.
-                    </Text>
+                    <Text>Enter your email to sign in.</Text>
                     <View className="gap-3">
                       <Fieldset>
-                        <Label className="text-xl">Email</Label>
+                        <Label>Email</Label>
                         <Input
                           placeholder="you@example.com"
                           keyboardType="email-address"
@@ -51,7 +59,6 @@ export default function App() {
                             setEmail(value);
                           }}
                           autoFocus
-                          className="text-xl"
                         />
                       </Fieldset>
                       <Button
@@ -77,21 +84,21 @@ export default function App() {
                         loading={loading}
                         disabled={loading}
                       >
-                        <Text className="text-xl">Sign in</Text>
+                        <Text>Sign in</Text>
                       </Button>
                     </View>
                   </>
                 )}
                 {step === "otp" && (
                   <>
-                    <Text className="text-xl">
+                    <Text>
                       We just sent a code to{" "}
-                      <Text className="font-bold">{email}</Text>. Please enter
-                      it below.
+                      <Text className="font-sans-bold">{email}</Text>. Please
+                      enter it below.
                     </Text>
                     <View className="gap-3">
                       <Fieldset>
-                        <Label className="text-xl">Verification code</Label>
+                        <Label>Verification code</Label>
                         <Input
                           placeholder="XXXXXX"
                           keyboardType="numeric"
@@ -100,7 +107,6 @@ export default function App() {
                             setOtp(value);
                           }}
                           autoFocus
-                          className="text-xl"
                         />
                       </Fieldset>
                       <Button
@@ -124,7 +130,7 @@ export default function App() {
                         loading={loading}
                         disabled={loading}
                       >
-                        <Text className="text-xl">Verify</Text>
+                        <Text>Verify</Text>
                       </Button>
                     </View>
                     <Pressable
@@ -136,7 +142,7 @@ export default function App() {
                       className="flex flex-row items-center justify-center gap-1"
                     >
                       <ArrowLeft />
-                      <Text className="text-xl">Back</Text>
+                      <Text>Back</Text>
                     </Pressable>
                   </>
                 )}

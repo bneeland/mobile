@@ -15,7 +15,9 @@ export default function Button({
         props.className,
       )}
     >
-      <Text className="text-center text-white">{children}</Text>
+      <Text className="text-center font-sans-regular text-xl text-white">
+        {children}
+      </Text>
     </Pressable>
   );
 }
