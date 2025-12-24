@@ -3,9 +3,13 @@ import { useSetting } from "contexts/SettingContext";
 import { auth } from "lib/auth";
 import { backend } from "../../lib/utils";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { RefreshControl, View } from "react-native";
 import { Check } from "lucide-react-native";
 import Button from "components/Button";
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+} from "react-native-keyboard-controller";
 
 export default function Index() {
   const { setting } = useSetting();
@@ -17,6 +21,8 @@ export default function Index() {
   const [loadingCheckin, setLoadingCheckin] = useState(false);
 
   async function loadCheckins() {
+    setLoadingCheckins(true);
+
     const response = await backend({
       method: "get",
       url: "/api/checkins/get-user-checkins",
@@ -73,75 +79,88 @@ export default function Index() {
   console.log(checkinDeadline);
 
   return (
-    <View className="p-5">
-      <Text>Current</Text>
-      <Text>Today</Text>
-      <Text>
-        {new Intl.DateTimeFormat("en-US", {
-          dateStyle: "medium",
-        }).format(new Date())}
-      </Text>
-      <Text>Started</Text>
-      <Text>
-        {setting
-          ? new Intl.DateTimeFormat("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            }).format(new Date(`1970-01-01T${setting.checkinResetTime}`))
-          : ""}
-      </Text>
-      <Text>Check in by</Text>
-      <Text>
-        {setting
-          ? new Intl.DateTimeFormat("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            }).format(new Date(`1970-01-01T${setting.checkinDeadlineTime}`))
-          : ""}
-      </Text>
-
-      {checkins &&
-        (currentCheckin ? (
-          <View className="flex items-center gap-2">
-            <Check className="inline size-5" />
-            <View>
-              <Text>
-                Checked in at{" "}
-                {new Intl.DateTimeFormat("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                }).format(new Date(currentCheckin.createdAt))}
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <Button
-            onPress={async () => {
-              setLoadingCheckin(true);
-
-              const response = await backend({
-                method: "post",
-                url: "/api/checkins/create-user-checkin",
-                headers: {
-                  Cookie: auth.getCookie(),
-                },
-              });
-              console.log("response");
-              console.log(response);
-
-              setLoadingCheckin(false);
-
-              loadCheckins();
+    <KeyboardProvider>
+      <KeyboardAwareScrollView
+        bottomOffset={62}
+        contentContainerClassName="p-5"
+        refreshControl={
+          <RefreshControl
+            refreshing={loadingCheckins}
+            onRefresh={async () => {
+              await loadCheckins();
             }}
-            disabled={loadingCheckin || !setting?.checkinsEnabled}
-            loading={loadingCheckin}
-          >
-            Check in
-          </Button>
-        ))}
-    </View>
+          />
+        }
+      >
+        <Text>Current</Text>
+        <Text>Today</Text>
+        <Text>
+          {new Intl.DateTimeFormat("en-US", {
+            dateStyle: "medium",
+          }).format(new Date())}
+        </Text>
+        <Text>Started</Text>
+        <Text>
+          {setting
+            ? new Intl.DateTimeFormat("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              }).format(new Date(`1970-01-01T${setting.checkinResetTime}`))
+            : ""}
+        </Text>
+        <Text>Check in by</Text>
+        <Text>
+          {setting
+            ? new Intl.DateTimeFormat("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              }).format(new Date(`1970-01-01T${setting.checkinDeadlineTime}`))
+            : ""}
+        </Text>
+
+        {checkins &&
+          (currentCheckin ? (
+            <View className="flex items-center gap-2">
+              <Check className="inline size-5" />
+              <View>
+                <Text>
+                  Checked in at{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  }).format(new Date(currentCheckin.createdAt))}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <Button
+              onPress={async () => {
+                setLoadingCheckin(true);
+
+                const response = await backend({
+                  method: "post",
+                  url: "/api/checkins/create-user-checkin",
+                  headers: {
+                    Cookie: auth.getCookie(),
+                  },
+                });
+                console.log("response");
+                console.log(response);
+
+                setLoadingCheckin(false);
+
+                loadCheckins();
+              }}
+              disabled={loadingCheckin || !setting?.checkinsEnabled}
+              loading={loadingCheckin}
+            >
+              Check in
+            </Button>
+          ))}
+      </KeyboardAwareScrollView>
+    </KeyboardProvider>
   );
 }
