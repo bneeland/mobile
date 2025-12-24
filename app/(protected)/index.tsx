@@ -1,167 +1,147 @@
 import Text from "components/Text";
+import { useSetting } from "contexts/SettingContext";
+import { auth } from "lib/auth";
+import { backend } from "../../lib/utils";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
+import { Check } from "lucide-react-native";
+import Button from "components/Button";
 
 export default function Index() {
+  const { setting } = useSetting();
+  console.log("setting");
+  console.log(setting);
+
+  const [checkins, setCheckins] = useState<any>();
+  const [loadingCheckins, setLoadingCheckins] = useState(true);
+  const [loadingCheckin, setLoadingCheckin] = useState(false);
+
+  async function loadCheckins() {
+    const response = await backend({
+      method: "get",
+      url: "/api/checkins/get-user-checkins",
+      headers: {
+        Cookie: auth.getCookie(),
+      },
+    });
+    console.log("response");
+    console.log(response);
+
+    setCheckins(response.data.checkins);
+
+    setLoadingCheckins(false);
+  }
+
+  useEffect(() => {
+    loadCheckins();
+  }, []);
+
+  const lastReset = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate(),
+  );
+  console.log("lastReset");
+  console.log(lastReset);
+  const nextReset = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate() + 1,
+  );
+  console.log("nextReset");
+  console.log(nextReset);
+  const currentCheckin = checkins?.find(
+    (checkin: any) =>
+      new Date(checkin.createdAt) >= lastReset &&
+      new Date(checkin.createdAt) < nextReset,
+  );
+  console.log("currentCheckin");
+  console.log(currentCheckin);
+
+  const [h, m] = setting
+    ? setting.checkinDeadlineTime.split(":")
+    : [undefined, undefined];
+
+  const checkinDeadline = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate(),
+    h,
+    m,
+  );
+  console.log("checkinDeadline");
+  console.log(checkinDeadline);
+
   return (
-    <View>
-      <Text>index</Text>
+    <View className="p-5">
+      <Text>Current</Text>
+      <Text>Today</Text>
+      <Text>
+        {new Intl.DateTimeFormat("en-US", {
+          dateStyle: "medium",
+        }).format(new Date())}
+      </Text>
+      <Text>Started</Text>
+      <Text>
+        {setting
+          ? new Intl.DateTimeFormat("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            }).format(new Date(`1970-01-01T${setting.checkinResetTime}`))
+          : ""}
+      </Text>
+      <Text>Check in by</Text>
+      <Text>
+        {setting
+          ? new Intl.DateTimeFormat("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            }).format(new Date(`1970-01-01T${setting.checkinDeadlineTime}`))
+          : ""}
+      </Text>
+
+      {checkins &&
+        (currentCheckin ? (
+          <View className="flex items-center gap-2">
+            <Check className="inline size-5" />
+            <View>
+              <Text>
+                Checked in at{" "}
+                {new Intl.DateTimeFormat("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }).format(new Date(currentCheckin.createdAt))}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <Button
+            onPress={async () => {
+              setLoadingCheckin(true);
+
+              const response = await backend({
+                method: "post",
+                url: "/api/checkins/create-user-checkin",
+                headers: {
+                  Cookie: auth.getCookie(),
+                },
+              });
+              console.log("response");
+              console.log(response);
+
+              setLoadingCheckin(false);
+
+              loadCheckins();
+            }}
+            disabled={loadingCheckin || !setting?.checkinsEnabled}
+            loading={loadingCheckin}
+          >
+            Check in
+          </Button>
+        ))}
     </View>
   );
 }
-
-// import "../global.css";
-// import {
-//   KeyboardAwareScrollView,
-//   KeyboardProvider,
-// } from "react-native-keyboard-controller";
-// import { Pressable, View } from "react-native";
-// import { useState } from "react";
-// import { auth } from "lib/auth";
-// import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-// import Input from "components/Input";
-// import Button from "components/Button";
-// import Fieldset from "components/Fieldset";
-// import Label from "components/Label";
-// import { ArrowLeft } from "lucide-react-native";
-// import { useFonts } from "expo-font";
-// import Text from "components/Text";
-
-// export default function App() {
-//   useFonts({
-//     "Manrope-ExtraLight": require("../assets/fonts/Manrope-ExtraLight.ttf"),
-//     "Manrope-Light": require("../assets/fonts/Manrope-Light.ttf"),
-//     "Manrope-Regular": require("../assets/fonts/Manrope-Regular.ttf"),
-//     "Manrope-Medium": require("../assets/fonts/Manrope-Medium.ttf"),
-//     "Manrope-SemiBold": require("../assets/fonts/Manrope-SemiBold.ttf"),
-//     "Manrope-Bold": require("../assets/fonts/Manrope-Bold.ttf"),
-//     "Manrope-ExtraBold": require("../assets/fonts/Manrope-ExtraBold.ttf"),
-//   });
-
-//   const [step, setStep] = useState<"email" | "otp">("email");
-//   const [email, setEmail] = useState("");
-//   const [otp, setOtp] = useState("");
-//   const [loading, setLoading] = useState(false);
-
-//   return (
-//     // <KeyboardProvider>
-//     //   <SafeAreaProvider>
-//     //     <KeyboardAwareScrollView
-//     //       bottomOffset={62}
-//     //       className="bg-blue-50"
-//     //       contentContainerClassName=""
-//     //     >
-//     //       <SafeAreaView className="">
-//             <View className="">
-//               <Text className="my-5 text-center text-stone-400">Emberline</Text>
-//               <View className="mx-5 gap-7 rounded-3xl bg-white p-10 shadow">
-//                 <Text className="text-4xl leading-normal">Sign in</Text>
-//                 {step === "email" && (
-//                   <>
-//                     <Text>Enter your email to sign in.</Text>
-//                     <View className="gap-3">
-//                       <Fieldset>
-//                         <Label>Email</Label>
-//                         <Input
-//                           placeholder="you@example.com"
-//                           keyboardType="email-address"
-//                           autoCapitalize="none"
-//                           value={email}
-//                           onChangeText={(value) => {
-//                             setEmail(value);
-//                           }}
-//                           autoFocus
-//                         />
-//                       </Fieldset>
-//                       <Button
-//                         onPress={async () => {
-//                           setLoading(true);
-
-//                           const { data, error } =
-//                             await auth.emailOtp.sendVerificationOtp({
-//                               email, // required
-//                               type: "sign-in", // required
-//                             });
-//                           console.log("data");
-//                           console.log(data);
-
-//                           if (error) {
-//                             console.error(error);
-//                           } else {
-//                             setStep("otp");
-//                           }
-
-//                           setLoading(false);
-//                         }}
-//                         loading={loading}
-//                         disabled={loading}
-//                       >
-//                         <Text>Sign in</Text>
-//                       </Button>
-//                     </View>
-//                   </>
-//                 )}
-//                 {step === "otp" && (
-//                   <>
-//                     <Text>
-//                       We just sent a code to{" "}
-//                       <Text className="font-sans-bold">{email}</Text>. Please
-//                       enter it below.
-//                     </Text>
-//                     <View className="gap-3">
-//                       <Fieldset>
-//                         <Label>Verification code</Label>
-//                         <Input
-//                           placeholder="XXXXXX"
-//                           keyboardType="numeric"
-//                           value={otp}
-//                           onChangeText={(value) => {
-//                             setOtp(value);
-//                           }}
-//                           autoFocus
-//                         />
-//                       </Fieldset>
-//                       <Button
-//                         onPress={async () => {
-//                           setLoading(true);
-
-//                           const { data, error } = await auth.signIn.emailOtp({
-//                             email, // required
-//                             otp, // required
-//                           });
-//                           console.log("data");
-//                           console.log(data);
-
-//                           if (error) {
-//                             console.error(error);
-//                           } else {
-//                           }
-
-//                           setLoading(false);
-//                         }}
-//                         loading={loading}
-//                         disabled={loading}
-//                       >
-//                         <Text>Verify</Text>
-//                       </Button>
-//                     </View>
-//                     <Pressable
-//                       onPress={() => {
-//                         setStep("email");
-
-//                         setOtp("");
-//                       }}
-//                       className="flex flex-row items-center justify-center gap-1"
-//                     >
-//                       <ArrowLeft />
-//                       <Text>Back</Text>
-//                     </Pressable>
-//                   </>
-//                 )}
-//               </View>
-//             </View>
-//     //       </SafeAreaView>
-//     //     </KeyboardAwareScrollView>
-//     //   </SafeAreaProvider>
-//     // </KeyboardProvider>
-//   );
-// }

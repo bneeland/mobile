@@ -4,7 +4,8 @@ import { createAuthClient } from "better-auth/react";
 import * as SecureStore from "expo-secure-store";
 
 export const auth = createAuthClient({
-  baseURL: "https://local.uptrack.dev", // Base URL of your Better Auth backend.
+  baseURL: process.env.EXPO_PUBLIC_SERVER_BASE_URL,
+  // baseURL: "https://local.uptrack.dev", // Base URL of your Better Auth backend.
   // baseURL: "http://localhost:3000", // Base URL of your Better Auth backend.
   plugins: [
     emailOTPClient(),

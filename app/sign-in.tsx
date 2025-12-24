@@ -12,6 +12,8 @@ import Button from "components/Button";
 import { ArrowLeft } from "lucide-react-native";
 import { auth } from "lib/auth";
 import { useRouter } from "expo-router";
+import Link from "components/Link";
+import Error from "components/Error";
 
 export default function SignIn() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <KeyboardProvider>
@@ -34,7 +37,7 @@ export default function SignIn() {
             <Text className="text-4xl leading-normal">Sign in</Text>
             {step === "email" && (
               <>
-                <Text>Enter your email to sign in.</Text>
+                <Text>Enter your email to sign in or create an account.</Text>
                 <View className="gap-3">
                   <Fieldset>
                     <Label>Email</Label>
@@ -75,6 +78,17 @@ export default function SignIn() {
                     <Text>Sign in</Text>
                   </Button>
                 </View>
+                <Text className="text-md text-pretty">
+                  By signing in, you agree to the{" "}
+                  <Link href="https://www.emberline.app/terms-of-service">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="https://www.emberline.app/privacy-policy">
+                    Privacy Policy
+                  </Link>
+                  .
+                </Text>
               </>
             )}
             {step === "otp" && (
@@ -93,6 +107,7 @@ export default function SignIn() {
                       value={otp}
                       onChangeText={(value) => {
                         setOtp(value);
+                        setError("");
                       }}
                       autoFocus
                     />
@@ -109,13 +124,18 @@ export default function SignIn() {
                       console.log(data);
 
                       if (error) {
-                        console.error(error);
+                        console.log(error);
+
+                        setError(
+                          error.message || "Incorrect input. Please try again.",
+                        );
                       } else {
                         router.navigate("/(protected)");
 
                         setStep("email");
                         setEmail("");
                         setOtp("");
+                        setError("");
                       }
 
                       setLoading(false);
@@ -126,10 +146,14 @@ export default function SignIn() {
                     <Text>Verify</Text>
                   </Button>
                 </View>
+
+                {error && <Error>{error}</Error>}
+
                 <Pressable
                   onPress={() => {
                     setStep("email");
                     setOtp("");
+                    setError("");
                   }}
                   className="flex flex-row items-center justify-center gap-1"
                 >
